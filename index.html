@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Merienda Rush! — patakbuhin ang isang Filipino street food stall: turon, banana cue, fishball at palamig. Isang original na cooking time-management game.">
+  <meta name="theme-color" content="#ff9a5c">
+  <title>Merienda Rush!</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='8' y='22' width='48' height='22' rx='11' fill='%23d98e2b' stroke='%233b2414' stroke-width='4' transform='rotate(-15 32 33)'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="app">
+    <div id="stage">
+      <canvas id="cv" aria-label="Merienda Rush game area: customers at the top, cooking stations at the bottom">Your browser does not support the canvas element.</canvas>
+
+      <!-- HUD -->
+      <div id="hud" hidden>
+        <div class="hud-left">
+          <div class="hud-coins" aria-label="Pesos earned today"><span class="coin" aria-hidden="true">₱</span><span id="hudCoins">0</span></div>
+          <div class="hud-goal">
+            <div class="bar" id="hudBar" aria-hidden="true">
+              <div class="fill" id="hudFill"></div>
+              <i class="mk">★</i><i class="mk">★</i><i class="mk">★</i>
+            </div>
+            <span id="hudGoal">Goal ₱60</span>
+          </div>
+        </div>
+        <div class="hud-mid">
+          <span id="hudDay" class="hud-day">Araw 1</span>
+          <span id="hudTimeBox" class="hud-time"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M12 9v4l3 2M9 3h6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg><span id="hudTime">1:30</span></span>
+          <span id="hudHearts" class="hud-hearts" aria-label="3 hearts left">♥♥♥</span>
+        </div>
+        <div class="hud-right">
+          <button id="btnMute" class="iconbtn" type="button" aria-label="Mute sound" aria-pressed="false">
+            <svg class="on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+            <svg class="off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+          </button>
+          <button id="btnPause" class="iconbtn" type="button" aria-label="Pause (P)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.5" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1.5" fill="currentColor"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TITLE -->
+    <section class="screen" id="scrTitle" aria-labelledby="logo" hidden>
+      <div class="card title-card">
+        <h1 id="logo" class="logo"><span>Merienda</span> <span class="rush">Rush!</span></h1>
+        <p class="tagline">Ang pinakamabilis na merienda stall sa buong barangay!</p>
+        <div class="title-stats">
+          <span>Ipon: <strong id="titleWallet">₱0</strong></span>
+          <span>Stars: <strong id="titleStars">0 / 24</strong></span>
+        </div>
+        <div class="btns col">
+          <button id="btnPlay" class="btn big primary" type="button" data-autofocus>Laro na!</button>
+          <button id="btnHow" class="btn" type="button">Paano Maglaro</button>
+          <button id="btnShop" class="btn" type="button">Upgrade Shop</button>
+        </div>
+        <div class="title-foot">
+          <button id="btnMuteTitle" class="btn small ghost" type="button" aria-pressed="false" aria-label="Mute sound"><span class="lbl-on">Tunog: ON</span><span class="lbl-off">Tunog: OFF</span></button>
+          <button id="btnReset" class="btn small ghost" type="button">I-reset ang progress</button>
+        </div>
+        <p class="fine">Original na laro · HTML, CSS at JavaScript lang · lahat ng drawing ay gawa sa code</p>
+      </div>
+    </section>
+
+    <!-- HOW TO PLAY -->
+    <section class="screen" id="scrHow" aria-labelledby="howTitle" hidden>
+      <div class="card wide">
+        <h2 id="howTitle">Paano Maglaro</h2>
+        <ol class="howlist">
+          <li><strong>Tap</strong> ang sangkap sa bilao, tapos <strong>tap</strong> ang station. (Puwede ring i-<strong>drag</strong>!) Ang kumikislap na dilaw na kahon = puwede doon.</li>
+          <li>Sundan ang recipe sa ibaba. Sa <strong>Sangkalan</strong> binubuo ang pagkain, sa <strong>Kawali</strong> pinuprito.</li>
+          <li>Bantayan ang kawali: <span class="ring white">puti</span> = niluluto, <span class="ring green">berde ✓</span> = luto na, kunin agad! <span class="ring red">pula !</span> = malapit nang masunog.</li>
+          <li>Ang sunog na pagkain, itapon sa <strong>Basura</strong> (−₱5).</li>
+          <li>Ihain ang tamang order sa tamang customer. Mas mabilis = mas malaking <strong>tip</strong>.</li>
+          <li>Pag naubos ang pasensya (berde → dilaw → pula), aalis ang customer: <strong>−1 ♥</strong>. Ubos ang 3 ♥ = sarado na ang tindahan.</li>
+          <li>Abutin ang <strong>goal</strong> para sa ★. Gamitin ang ipon sa <strong>Upgrade Shop</strong>.</li>
+          <li>Keyboard: <kbd>P</kbd>/<kbd>Esc</kbd> = pause, <kbd>M</kbd> = tunog.</li>
+        </ol>
+        <h3>Mga Recipe</h3>
+        <div id="howRecipes" class="recipes"></div>
+        <div class="btns"><button id="btnHowBack" class="btn primary" type="button" data-autofocus>Sige, gets ko!</button></div>
+      </div>
+    </section>
+
+    <!-- DAY SELECT -->
+    <section class="screen" id="scrDays" aria-labelledby="daysTitle" hidden>
+      <div class="card wide">
+        <h2 id="daysTitle">Pumili ng Araw</h2>
+        <p class="muted center">Ipon: <strong id="daysWallet">₱0</strong></p>
+        <div id="dayGrid" class="daygrid"></div>
+        <div class="btns">
+          <button id="btnDaysBack" class="btn ghost" type="button">← Bumalik</button>
+          <button id="btnDaysHow" class="btn" type="button">Paano Maglaro</button>
+          <button id="btnDaysShop" class="btn" type="button">Upgrade Shop</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- DAY INTRO -->
+    <section class="screen" id="scrIntro" aria-labelledby="introTitle" hidden>
+      <div class="card">
+        <h2 id="introTitle">Araw 1</h2>
+        <div class="introstats">
+          <div><span>Goal</span><strong id="introGoal">₱60</strong></div>
+          <div><span>Oras</span><strong id="introTime">1:30</strong></div>
+          <div><span>★ / ★★ / ★★★</span><strong id="introStars">₱60</strong></div>
+        </div>
+        <div id="introNew"></div>
+        <div class="btns">
+          <button id="btnIntroBack" class="btn ghost" type="button">← Bumalik</button>
+          <button id="btnStart" class="btn big primary" type="button" data-autofocus>Buksan ang Tindahan!</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAUSE -->
+    <section class="screen dim" id="scrPause" aria-labelledby="pauseTitle" hidden>
+      <div class="card small-card">
+        <h2 id="pauseTitle">Naka-pause</h2>
+        <div class="btns col">
+          <button id="btnResume" class="btn big primary" type="button" data-autofocus>Ituloy</button>
+          <button id="btnPauseHow" class="btn" type="button">Paano Maglaro</button>
+          <button id="btnRestart" class="btn" type="button">Ulitin ang Araw</button>
+          <button id="btnQuit" class="btn ghost" type="button">Umalis (Pumili ng Araw)</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESULTS -->
+    <section class="screen" id="scrResults" aria-labelledby="resTitle" hidden>
+      <div class="card">
+        <h2 id="resTitle">Tapos ang Araw!</h2>
+        <p id="resSub" class="muted center"></p>
+        <div id="resStars" class="bigstars" role="img" aria-label="0 of 3 stars"><span>★</span><span>★</span><span>★</span></div>
+        <dl class="stats">
+          <div><dt>Kinita</dt><dd id="resCoins">₱0</dd></div>
+          <div><dt>Tips</dt><dd id="resTips">₱0</dd></div>
+          <div><dt>Customers na napagsilbihan</dt><dd id="resServed">0</dd></div>
+          <div><dt>Umalis na galit</dt><dd id="resLost">0</dd></div>
+          <div><dt>Nasunog</dt><dd id="resBurnt">0</dd></div>
+          <div><dt>Best</dt><dd id="resBest">₱0</dd></div>
+          <div><dt>Kabuuang ipon</dt><dd id="resWallet">₱0</dd></div>
+        </dl>
+        <p id="resAllDone" class="win" hidden>Natapos mo ang lahat ng araw! Ikaw na ang Merienda Master ng barangay! 🎉</p>
+        <div class="btns">
+          <button id="btnResDays" class="btn ghost" type="button">Mga Araw</button>
+          <button id="btnRetry" class="btn" type="button">Ulitin</button>
+          <button id="btnResShop" class="btn" type="button">Upgrade Shop</button>
+          <button id="btnNext" class="btn primary" type="button" data-autofocus>Susunod na Araw →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SHOP -->
+    <section class="screen" id="scrShop" aria-labelledby="shopTitle" hidden>
+      <div class="card wide">
+        <h2 id="shopTitle">Upgrade Shop</h2>
+        <p class="muted center">Ipon: <strong id="shopWallet">₱0</strong></p>
+        <div id="shopList" class="shoplist"></div>
+        <div class="btns"><button id="btnShopBack" class="btn primary" type="button" data-autofocus>Tapos na</button></div>
+      </div>
+    </section>
+
+    <p id="rotateHint" class="rotate-hint">I-landscape ang phone mo para mas malaki ang laro ↻</p>
+  </main>
+
+  <!-- Plain scripts (no modules) so the game also works by double-clicking index.html -->
+  <script src="js/data.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/art.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/game.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
